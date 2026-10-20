@@ -17,7 +17,18 @@ func initRun(args []string) error {
 	init.Parse(args)
 
 	if os.Args[1] == "init" && init.NFlag() == 0 {
-		err = config.Init()
+		err = config.Init(
+			config.HOME,
+			config.APP,
+			config.CONFIG,
+			config.DATA,
+			config.STAGING,
+			config.PROCESSED,
+			config.DB,
+			config.LOGGING,
+			config.CONFIG_FILE,
+			[]config.LogTypeMeta{config.Placeholder, config.Placeholder},
+		)
 		if err != nil {
 			return fmt.Errorf("Could not initiate app directories; %w\n", err)
 		}
