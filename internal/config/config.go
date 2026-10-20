@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -37,9 +38,9 @@ type Options struct {
 	Clean bool
 }
 
-type logTypeMeta struct {
+type LogTypeMeta struct {
 	LogName            string `toml:"logName"`
-	SourceDirBase      string `toml:"sourceDir"`
+	LogSourceDir       string `toml:"logSourceDir"`
 	LogFilePattern     string `toml:"logFilePattern"`
 	LogFileCompression string `toml:"logFileCompression"`
 }
@@ -52,12 +53,12 @@ type AppConfig struct {
 	AppDataProcessed string        `toml:"AppDataProcessed"`
 	AppDataDB        string        `toml:"AppDataDB"`
 	AppLog           string        `toml:"AppLog"`
-	DefinedLogs      []logTypeMeta `toml:"DefinedLogs"`
+	DefinedLogs      []LogTypeMeta `toml:"DefinedLogs"`
 }
 
-var Placeholder = logTypeMeta{
+var Placeholder = LogTypeMeta{
 	LogName:            "nginx",
-	SourceDirBase:      "nginx_logs",
+	LogSourceDir:       "nginx_logs",
 	LogFilePattern:     "access",
 	LogFileCompression: ".gz",
 }
@@ -69,9 +70,31 @@ var TestConfig = AppConfig{
 	AppDataProcessed: "app home",
 	AppDataDB:        "app home",
 	AppLog:           "app home",
-	DefinedLogs: []logTypeMeta{
+	DefinedLogs: []LogTypeMeta{
 		Placeholder,
 	},
+}
+
+func parseSourceDir(fpath string, home string) (string, error) {
+	var err error
+	err = errors.New("`sourceDir` is empty")
+	if fpath == "" {
+		return "", fmt.Errorf("%w\n", err)
+	}
+
+	replacer := strings.NewReplacer("~/$HOME", os.ExpandEnv(home), "~", os.ExpandEnv(home), "$HOME", os.ExpandEnv(home))
+	fpath = replacer.Replace(fpath)
+	fpath = filepath.Clean(fpath)
+	err = errors.New("`sourceDir` is not an absolute path")
+	if !filepath.IsAbs(fpath) {
+		return "", fmt.Errorf("%w\n", err)
+	}
+	_, err = os.Stat(fpath)
+	if errors.Is(err, fs.ErrNotExist) {
+		return "", fmt.Errorf("The `sourceDir` you provided in glog.toml does not exist;\n%w\n", err)
+	}
+
+	return fpath, err
 }
 
 func CleanAppDirectory() error {
@@ -82,9 +105,9 @@ func CleanAppDirectory() error {
 	return err
 }
 
-func ReadConfig(appConfig *AppConfig) error {
+func ReadConfig(HOME string, APP string, CONFIG string, CONFIG_FILE string, appConfig *AppConfig) error {
 	var err error
-	config_file, err := os.Open("test.toml") //os.Open(filepath.Join(HOME, APP, CONFIG, CONFIG_FILE))
+	config_file, err := os.Open(filepath.Join(HOME, APP, CONFIG, CONFIG_FILE))
 	if errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("Config file does not exist. Have you ran 'glog init'?")
 	}
@@ -99,10 +122,13 @@ func ReadConfig(appConfig *AppConfig) error {
 	if len(meta.Undecoded()) > 0 {
 		return fmt.Errorf("%w", ErrIllegalConfigFileds)
 	}
+	for _, log := range appConfig.DefinedLogs {
+		log.LogSourceDir, err = parseSourceDir(log.LogSourceDir, HOME)
+	}
 	return err
 }
 
-func Init() error {
+func Init(HOME string, APP string, CONFIG string, DATA string, STAGING string, PROCESSED string, DB string, LOGGING string, CONFIG_FILE string, placeholders []LogTypeMeta) error {
 	var err error
 	var config AppConfig
 	config.AppHome = filepath.Join(HOME, APP)
@@ -130,18 +156,18 @@ func Init() error {
 	if err = os.MkdirAll(config.AppLog, 0o755); err != nil {
 		return fmt.Errorf("Was not able to create %s due to %w\n", config.AppLog, err)
 	}
-	config_file, rerr := os.OpenFile(filepath.Join(HOME, APP, CONFIG, CONFIG_FILE), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
-	if rerr != nil {
-		return fmt.Errorf("Was not able to open config file due to %w\n", rerr)
+	config_file, err := os.OpenFile(filepath.Join(HOME, APP, CONFIG, CONFIG_FILE), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+	if err != nil {
+		return fmt.Errorf("Was not able to open config file due to %w\n", err)
 	}
 	defer config_file.Close()
 
 	encoder := toml.NewEncoder(config_file)
 
-	config.DefinedLogs = []logTypeMeta{Placeholder, Placeholder}
+	config.DefinedLogs = placeholders
 
 	if err := encoder.Encode(config); err != nil {
-		return fmt.Errorf("Was not able to write to config file due to %w\n", rerr)
+		return fmt.Errorf("Was not able to write to config file due to %w\n", err)
 	}
 	config_file.Sync()
 
