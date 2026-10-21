@@ -167,7 +167,6 @@ func TestConfigFile(t *testing.T) {
 		CONFIG_FILE,
 		&config,
 	)
-	fmt.Println(config)
 	if err != nil {
 		t.Errorf("Reading failed: %v", err)
 	}
