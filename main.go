@@ -10,8 +10,7 @@ import (
 	"git.nikolaydudaev.com/ndudaev/glog/internal/config"
 	"git.nikolaydudaev.com/ndudaev/glog/internal/extract"
 	"git.nikolaydudaev.com/ndudaev/glog/internal/intlog"
-	"github.com/k0kubun/go-ansi"
-	"github.com/schollz/progressbar/v3"
+	"git.nikolaydudaev.com/ndudaev/glog/internal/utils"
 )
 
 func initRun(args []string) error {
@@ -70,19 +69,7 @@ func extractRun(args []string) error {
 			log.Fatal(err)
 		}
 
-		bar := progressbar.NewOptions(len(cfg.DefinedLogs),
-			progressbar.OptionSetWriter(ansi.NewAnsiStdout()), //you should install "github.com/k0kubun/go-ansi"
-			progressbar.OptionEnableColorCodes(true),
-			progressbar.OptionShowBytes(true),
-			progressbar.OptionSetWidth(100),
-			progressbar.OptionSetDescription("[purple][1/2][reset] Extracting raw log files..."),
-			progressbar.OptionSetTheme(progressbar.Theme{
-				Saucer:        "[purple]=[reset]",
-				SaucerHead:    "[purple]>[reset]",
-				SaucerPadding: " ",
-				BarStart:      "[",
-				BarEnd:        "]",
-			}))
+		bar := utils.CreateProgressBar(len(cfg.DefinedLogs), "1", "2", "Extracting raw log files ...")
 
 		for _, l := range cfg.DefinedLogs {
 			bar.Add(1)

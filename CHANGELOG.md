@@ -9,3 +9,7 @@
 `dev-extract-package`:
 - modified `extract.NewExtractor` to accept `DefinedLogs` struct
 - added a flag set for `extract` and `extractRun` in `main.go`
+
+`feat-unified-progressbar`
+- added `utils` package
+- added `utils.CreateProgressBar` which will generate a unified progressbar to be used in other packages
