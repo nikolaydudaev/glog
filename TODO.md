@@ -1,4 +1,4 @@
 # TODO
 
-- Parsing `sourceDir` from a string and processing
-- add tests to `config`
+- Add tests for extraction phase
+- Add progress tracker for visuals

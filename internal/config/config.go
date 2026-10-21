@@ -120,10 +120,12 @@ func ReadConfig(HOME string, APP string, CONFIG string, CONFIG_FILE string, appC
 	}
 	ErrIllegalConfigFileds := errors.New("There are illegal fields in configuration file. Aborting!")
 	if len(meta.Undecoded()) > 0 {
+		fmt.Println(meta.Undecoded())
 		return fmt.Errorf("%w", ErrIllegalConfigFileds)
 	}
-	for _, log := range appConfig.DefinedLogs {
-		log.LogSourceDir, err = parseSourceDir(log.LogSourceDir, HOME)
+	for i := range appConfig.DefinedLogs {
+		defLog := &appConfig.DefinedLogs[i]
+		defLog.LogSourceDir, err = parseSourceDir(defLog.LogSourceDir, HOME)
 	}
 	return err
 }
