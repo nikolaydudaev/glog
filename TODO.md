@@ -1,4 +1,5 @@
 # TODO
 
-- Add tests for extraction phase
-- Add progress tracker for visuals
+- More robust error handling
+- Parsing logs
+- Export Logs

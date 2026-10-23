@@ -97,31 +97,34 @@ func exportRun(args []string, cfg *config.AppConfig) error {
 
 		bar := utils.CreateProgressBar(len(cfg.DefinedLogs), "1", "2", "Reading events stage files...")
 		for i := range cfg.DefinedLogs {
-			bar.Add(1)
 			switch cfg.DefinedLogs[i].LogName {
 			case "nginx", "caddy":
 				reader.Add(1)
 				go func() {
 					defer reader.Done()
 					export.ReadServerEvents(cfg.DefinedLogs[i].LogStageFile, cfg.DefinedLogs[i].LogName, serverRecords)
+					bar.Add(1)
 				}()
 			case "ufw":
 				reader.Add(1)
 				go func() {
 					defer reader.Done()
 					export.ReadFirewallEvents(cfg.DefinedLogs[i].LogStageFile, firewallRecords)
+					bar.Add(1)
 				}()
 			case "fail2ban":
 				reader.Add(1)
 				go func() {
 					defer reader.Done()
 					export.ReadFailbanEvents(cfg.DefinedLogs[i].LogStageFile, fail2banRecords)
+					bar.Add(1)
 				}()
 			case "auth":
 				reader.Add(1)
 				go func() {
 					defer reader.Done()
 					export.ReadAuthEvents(cfg.DefinedLogs[i].LogStageFile, authRecords)
+					bar.Add(1)
 				}()
 			}
 			time.Sleep(5 * time.Millisecond)
@@ -129,45 +132,43 @@ func exportRun(args []string, cfg *config.AppConfig) error {
 
 		go func() {
 			reader.Wait()
-			defer close(serverRecords)
-			defer close(firewallRecords)
-			defer close(fail2banRecords)
-			defer close(authRecords)
+			close(serverRecords)
+			close(firewallRecords)
+			close(fail2banRecords)
+			close(authRecords)
 		}()
 
-		bar = utils.CreateProgressBar(len(cfg.DefinedLogs), "2", "2", "Writing events stage files...")
-		for i := range cfg.DefinedLogs {
+		writer.Add(1)
+		go func() {
+			defer writer.Done()
+			export.WriteServerEvents(filepath.Join(cfg.AppDataProcessed, "server-events.json"), serverRecords)
 			bar.Add(1)
-			switch cfg.DefinedLogs[i].LogName {
-			case "nginx", "caddy":
-				writer.Add(1)
-				go func() {
-					defer writer.Done()
-					export.WriteServerEvents(filepath.Join(cfg.AppDataProcessed, "server-events.json"), serverRecords)
-				}()
-			case "ufw":
-				writer.Add(1)
-				go func() {
-					defer writer.Done()
-					export.WriteFirewallEvents(filepath.Join(cfg.AppDataProcessed, "firewall-events.json"), firewallRecords)
-				}()
-			case "fail2ban":
-				writer.Add(1)
-				go func() {
-					defer writer.Done()
-					export.WriteFailbanEvents(filepath.Join(cfg.AppDataProcessed, "fail2ban-events.json"), fail2banRecords)
-				}()
-			case "auth":
-				writer.Add(1)
-				go func() {
-					defer writer.Done()
-					export.WriteAuthEvents(filepath.Join(cfg.AppDataProcessed, "auth-events.json"), authRecords)
-				}()
-			}
-			time.Sleep(5 * time.Millisecond)
-		}
+		}()
+		writer.Add(1)
+		go func() {
+			defer writer.Done()
+			export.WriteFirewallEvents(filepath.Join(cfg.AppDataProcessed, "firewall-events.json"), firewallRecords)
+			bar.Add(1)
+		}()
+		writer.Add(1)
+		go func() {
+			defer writer.Done()
+			export.WriteFailbanEvents(filepath.Join(cfg.AppDataProcessed, "fail2ban-events.json"), fail2banRecords)
+			bar.Add(1)
+		}()
+		writer.Add(1)
+		go func() {
+			defer writer.Done()
+			export.WriteAuthEvents(filepath.Join(cfg.AppDataProcessed, "auth-events.json"), authRecords)
+			bar.Add(1)
+		}()
 
 		writer.Wait()
+
+		err := export.WriteToDuckDB(cfg)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 	}
 	if exportCmd.NFlag() > 1 || len(args) > 1 {
