@@ -13,3 +13,6 @@
 `feat-unified-progressbar`
 - added `utils` package
 - added `utils.CreateProgressBar` which will generate a unified progressbar to be used in other packages
+
+`feat-export-json`
+- integrated old stage files reader and JSON writers into `main.go` with the new command `export`

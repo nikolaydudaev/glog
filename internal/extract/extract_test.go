@@ -23,7 +23,7 @@ func TestNewExtract(t *testing.T) {
 	logType.LogFilePattern = "access"
 	logType.LogFileCompression = ".zip"
 
-	logExtr, err := NewExtractor(&cfg, logType)
+	logExtr, err := NewExtractor(&cfg, &logType)
 	if err != nil {
 		t.Errorf("NewExtractor error: %v", err)
 	}

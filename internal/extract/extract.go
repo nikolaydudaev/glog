@@ -34,7 +34,7 @@ type BaseExtractor struct {
 	LogFileCompression string
 }
 
-func NewExtractor(cfg *config.AppConfig, defined config.LogTypeMeta) (BaseExtractor, error) {
+func NewExtractor(cfg *config.AppConfig, defined *config.LogTypeMeta) (BaseExtractor, error) {
 	var err error
 	extractor := BaseExtractor{}
 	extractor.SourceDir = defined.LogSourceDir
@@ -42,6 +42,8 @@ func NewExtractor(cfg *config.AppConfig, defined config.LogTypeMeta) (BaseExtrac
 	extractor.LogName = defined.LogName
 	extractor.LogFilePattern = defined.LogFilePattern
 	extractor.LogFileCompression = defined.LogFileCompression
+
+	defined.LogStageFile = extractor.StageFile
 
 	if extractor.LogName == "" || extractor.SourceDir == "" || extractor.StageFile == "" || extractor.LogFilePattern == "" || extractor.LogFileCompression == "" {
 		return BaseExtractor{}, fmt.Errorf("NewExtractor failed with %s: error %w", defined.LogName, err)
