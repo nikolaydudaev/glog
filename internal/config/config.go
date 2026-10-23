@@ -43,6 +43,7 @@ type LogTypeMeta struct {
 	LogSourceDir       string `toml:"logSourceDir"`
 	LogFilePattern     string `toml:"logFilePattern"`
 	LogFileCompression string `toml:"logFileCompression"`
+	LogStageFile       string
 }
 
 // [AppConfig] keeps all application configurations in the struct

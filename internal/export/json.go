@@ -6,8 +6,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/schollz/progressbar/v3"
-
 	"git.nikolaydudaev.com/ndudaev/glog/internal/parse"
 )
 
@@ -21,7 +19,6 @@ func ReadServerEvents(fpath string, server string, records chan<- parse.ServerEv
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	bar := progressbar.Default(int64(100), "Reading server events stage files...")
 	for scanner.Scan() {
 		switch server {
 		case "nginx":
@@ -29,7 +26,6 @@ func ReadServerEvents(fpath string, server string, records chan<- parse.ServerEv
 		case "caddy":
 			parse.CaddyParserInstance.Parse(scanner.Text(), records)
 		}
-		bar.Add(1)
 	}
 	if scanerr := scanner.Err(); scanerr != nil {
 		log.Fatal(err)
@@ -44,10 +40,8 @@ func ReadFirewallEvents(fpath string, records chan<- parse.FirewallEvent) {
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	bar := progressbar.Default(int64(100), "Reading ufw stage files...")
 	for scanner.Scan() {
 		parse.UfwParserInstance.FirewallParse(scanner.Text(), records)
-		bar.Add(1)
 	}
 	if scanerr := scanner.Err(); scanerr != nil {
 		log.Fatal(err)
@@ -62,10 +56,8 @@ func ReadAuthEvents(fpath string, records chan<- parse.AuthEvent) {
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	bar := progressbar.Default(int64(100), "Reading auth stage files...")
 	for scanner.Scan() {
 		parse.AuthParserInstance.AuthParse(scanner.Text(), records)
-		bar.Add(1)
 	}
 	if scanerr := scanner.Err(); scanerr != nil {
 		log.Fatal(err)
@@ -80,10 +72,8 @@ func ReadFailbanEvents(fpath string, records chan<- parse.FailbanEvent) {
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	bar := progressbar.Default(int64(100), "Reading fail2ban stage files...")
 	for scanner.Scan() {
 		parse.FailbanParserInstance.FailbanParse(scanner.Text(), records)
-		bar.Add(1)
 	}
 	if scanerr := scanner.Err(); scanerr != nil {
 		log.Fatal(err)
@@ -98,12 +88,10 @@ func WriteServerEvents(fpath string, records <-chan parse.ServerEvent) {
 	defer f.Close()
 
 	enc := json.NewEncoder(f)
-	bar := progressbar.Default(int64(len(records)), "Writing to server events JSON...")
 	for sr := range records {
 		if err := enc.Encode(sr); err != nil {
 			log.Fatal(err)
 		}
-		bar.Add(1)
 	}
 }
 
@@ -115,12 +103,10 @@ func WriteFirewallEvents(fpath string, records chan parse.FirewallEvent) {
 	defer f.Close()
 
 	enc := json.NewEncoder(f)
-	bar := progressbar.Default(int64(len(records)), "Writing to firwall events JSON...")
 	for sr := range records {
 		if err := enc.Encode(sr); err != nil {
 			log.Fatal(err)
 		}
-		bar.Add(1)
 	}
 }
 
@@ -132,12 +118,10 @@ func WriteAuthEvents(fpath string, records chan parse.AuthEvent) {
 	defer f.Close()
 
 	enc := json.NewEncoder(f)
-	bar := progressbar.Default(int64(len(records)), "Writing to auth events JSON...")
 	for sr := range records {
 		if err := enc.Encode(sr); err != nil {
 			log.Fatal(err)
 		}
-		bar.Add(1)
 	}
 }
 
@@ -149,11 +133,9 @@ func WriteFailbanEvents(fpath string, records chan parse.FailbanEvent) {
 	defer f.Close()
 
 	enc := json.NewEncoder(f)
-	bar := progressbar.Default(int64(len(records)), "Writing to fail2ban events JSON...")
 	for sr := range records {
 		if err := enc.Encode(sr); err != nil {
 			log.Fatal(err)
 		}
-		bar.Add(1)
 	}
 }
