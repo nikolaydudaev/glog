@@ -99,3 +99,15 @@ Generated `logs.duckdb` contains following tables:
 - `auth_logs` - contains `auth` logs
 
 ## Installation
+
+Clone the repository and build like this:
+```
+git clone https://git.nikolaydudaev.com/ndudaev/glog.git
+cd glog
+go build -o ./build/glog
+```
+
+Then call:
+```
+./build/glog init
+```

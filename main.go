@@ -187,23 +187,6 @@ func main() {
 
 	// Read config file
 	var cfg config.AppConfig
-	err = config.ReadConfig(
-		config.HOME,
-		config.APP,
-		config.CONFIG,
-		config.CONFIG_FILE,
-		&cfg,
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for i := range cfg.DefinedLogs {
-		_, err := extract.NewExtractor(&cfg, &cfg.DefinedLogs[i])
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
 
 	switch os.Args[1] {
 	case "init":
@@ -212,11 +195,45 @@ func main() {
 			log.Fatal(err)
 		}
 	case "extract":
+		err = config.ReadConfig(
+			config.HOME,
+			config.APP,
+			config.CONFIG,
+			config.CONFIG_FILE,
+			&cfg,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i := range cfg.DefinedLogs {
+			_, err := extract.NewExtractor(&cfg, &cfg.DefinedLogs[i])
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 		err := extractRun(os.Args[2:], &cfg)
 		if err != nil {
 			log.Fatal(err)
 		}
 	case "export":
+		err = config.ReadConfig(
+			config.HOME,
+			config.APP,
+			config.CONFIG,
+			config.CONFIG_FILE,
+			&cfg,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i := range cfg.DefinedLogs {
+			_, err := extract.NewExtractor(&cfg, &cfg.DefinedLogs[i])
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 		err := exportRun(os.Args[2:], &cfg)
 		if err != nil {
 			log.Fatal(err)
