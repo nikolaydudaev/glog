@@ -23,17 +23,24 @@ type FailbanParser interface {
 
 type ServerEvent struct {
 	Source         string
+	Level          string
+	Logger         string
 	Ts             string //time.Time // nginx needs date parsing and converting; caddy needs converting from UTC
 	Msg            string // only caddy, empty for nginx
 	RemoteIp       string // only caddy, empty for nginx
 	RemotePort     string // only caddy, empty for nginx
 	ClientIp       string
-	Proto          string        // nginx needs extracting from request
-	Method         string        // nginx needs extracting from request
-	Host           string        // it is page in old nginx logs
-	Uri            string        // nginx needs extracting from request
-	RequestHeaders http.Header   //only caddy
-	ServerName     string        // from tls section of caddy logs
+	Proto          string      // nginx needs extracting from request
+	Method         string      // nginx needs extracting from request
+	Host           string      // it is page in old nginx logs
+	Uri            string      // nginx needs extracting from request
+	RequestHeaders http.Header //only caddy
+	TlsResumed     bool
+	TlsVersion     uint16
+	TlsCipherSuite uint16
+	TlsProto       string
+	TlsServerName  string // from tls section of caddy logs
+	TlsEch         bool
 	BytesRead      int           // only caddy
 	Duration       time.Duration //only caddy
 	Size           int           // response size in nginx
