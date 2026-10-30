@@ -9,12 +9,12 @@ import (
 )
 
 type TLS struct {
-	Resumed     bool   `json:"resumed"`
-	Version     uint16 `json:"version"`
-	CipherSuite uint16 `json:"cipher_suite"`
-	Proto       string `json:"proto"`
-	ServerName  string `json:"server_name"`
-	Ech         bool   `json:"ech"`
+	TlsResumed     bool   `json:"resumed"`
+	TlsVersion     uint16 `json:"version"`
+	TlsCipherSuite uint16 `json:"cipher_suite"`
+	TlsProto       string `json:"proto"`
+	TlsServerName  string `json:"server_name"`
+	TlsEch         bool   `json:"ech"`
 }
 
 type Request struct {
@@ -69,6 +69,8 @@ func (p *caddyParser) Parse(line string, out chan<- ServerEvent) {
 
 	event.Source = "caddy"
 	event.Ts = parseUnixTS(caddyLine.Ts)
+	event.Level = caddyLine.Level
+	event.Logger = caddyLine.Logger
 	event.Msg = caddyLine.Msg
 	event.RemoteIp = caddyLine.Request.RemoteIp
 	event.RemotePort = caddyLine.Request.RemotePort
@@ -78,7 +80,12 @@ func (p *caddyParser) Parse(line string, out chan<- ServerEvent) {
 	event.Host = caddyLine.Request.Host
 	event.Uri = caddyLine.Request.Uri
 	event.RequestHeaders = caddyLine.Request.Headers
-	event.ServerName = caddyLine.Request.TLS.ServerName
+	event.TlsResumed = caddyLine.Request.TLS.TlsResumed
+	event.TlsVersion = caddyLine.Request.TLS.TlsVersion
+	event.TlsCipherSuite = caddyLine.Request.TLS.TlsCipherSuite
+	event.TlsProto = caddyLine.Request.TLS.TlsProto
+	event.TlsServerName = caddyLine.Request.TLS.TlsServerName
+	event.TlsEch = caddyLine.Request.TLS.TlsEch
 	event.BytesRead = caddyLine.BytesRead
 	event.Duration = time.Duration(caddyLine.Duration * float64(time.Second))
 	event.Size = caddyLine.Size

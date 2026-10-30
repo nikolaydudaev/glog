@@ -107,7 +107,7 @@ func (p *nginxParser) Parse(line string, out chan<- ServerEvent) {
 	event.RemoteIp = ""
 	event.RemotePort = ""
 	event.RequestHeaders = http.Header{}
-	event.ServerName = ""
+	event.TlsServerName = ""
 	event.BytesRead = 0
 	event.Duration = 0.0
 	event.ClientIp = findToken([]byte(line), p.ClientIp, "client_ip")
