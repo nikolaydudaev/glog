@@ -18,6 +18,10 @@ func WriteToDuckDB(cfg *config.AppConfig) (err error) {
 	defer db.Close()
 
 	var queries []string = []string{
+		fmt.Sprintf(`COPY (SELECT DISTINCT * FROM read_ndjson_auto('%s')) TO '%s' (FORMAT parquet, COMPRESSION zstd);`, filepath.Join(cfg.AppDataProcessed, "server-events.json"), filepath.Join(cfg.AppDataProcessed, "server-logs.parquet")),
+		fmt.Sprintf(`COPY (SELECT DISTINCT * FROM read_ndjson_auto('%s')) TO '%s' (FORMAT parquet, COMPRESSION zstd);`, filepath.Join(cfg.AppDataProcessed, "firewall-events.json"), filepath.Join(cfg.AppDataProcessed, "firewall-logs.parquet")),
+		fmt.Sprintf(`COPY (SELECT DISTINCT * FROM read_ndjson_auto('%s')) TO '%s' (FORMAT parquet, COMPRESSION zstd);`, filepath.Join(cfg.AppDataProcessed, "fail2ban-events.json"), filepath.Join(cfg.AppDataProcessed, "fail2ban-logs.parquet")),
+		fmt.Sprintf(`COPY (SELECT DISTINCT * FROM read_ndjson_auto('%s')) TO '%s' (FORMAT parquet, COMPRESSION zstd);`, filepath.Join(cfg.AppDataProcessed, "auth-events.json"), filepath.Join(cfg.AppDataProcessed, "auth-logs.parquet")),
 		fmt.Sprintf(`CREATE OR REPLACE TABLE glog_extraction AS SELECT DISTINCT * FROM read_ndjson_auto('%s');`, filepath.Join(cfg.AppLog, "extraction-logs.log")),
 		fmt.Sprintf(`CREATE OR REPLACE TABLE server_logs AS SELECT DISTINCT * FROM read_ndjson_auto('%s');`, filepath.Join(cfg.AppDataProcessed, "server-events.json")),
 		fmt.Sprintf(`CREATE OR REPLACE TABLE firewall_logs AS SELECT DISTINCT * FROM read_ndjson_auto('%s');`, filepath.Join(cfg.AppDataProcessed, "firewall-events.json")),
